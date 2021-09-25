@@ -69,12 +69,12 @@ class Effects_borders_class {
     render_pre(ctx, data) {}
 
     render_post(ctx, data, layer) {
-        var size = Math.max(0, data.params.size);
+        const size = Math.max(0, data.params.size);
 
-        var x = layer.x;
-        var y = layer.y;
-        var width = parseInt(layer.width);
-        var height = parseInt(layer.height);
+        let x = layer.x;
+        let y = layer.y;
+        let width = parseInt(layer.width);
+        let height = parseInt(layer.height);
 
         //legacy check
         if (x == null) x = 0;
@@ -84,24 +84,26 @@ class Effects_borders_class {
 
         ctx.save();
 
-        //set styles
-        ctx.strokeStyle = data.params.color;
-        ctx.lineWidth = size;
+        var dArr = [-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, -1, 1, 0, 1, 1, 1]; // offset array
 
-        //draw with rotation support
-        ctx.translate(layer.x + width / 2, layer.y + height / 2);
-        ctx.rotate((layer.rotate * Math.PI) / 180);
-        var x_new = -width / 2;
-        var y_new = -height / 2;
+        // Draw the same image, but scaled by the border size
+        for (let i = 0; i < dArr.length; i += 2)
+            ctx.drawImage(
+                layer.link,
+                x + dArr[i] * size,
+                y + dArr[i + 1] * size
+            );
 
-        ctx.beginPath();
-        ctx.rect(
-            x_new - size * 0.5,
-            y_new - size * 0.5,
-            width + size,
-            height + size
-        );
-        ctx.stroke();
+        // Set the color
+        ctx.fillStyle = data.params.color;
+        // Now we will intersect the above drawn image with the rectangle below
+        // As a result we will have an object having the same shape of the original image, but scaled by the border size
+        ctx.globalCompositeOperation = "source-in";
+        ctx.fillRect(0, 0, width + size, height + size);
+
+        // Draw the original image in normal size on top of the newly created object
+        ctx.globalCompositeOperation = "source-over";
+        ctx.drawImage(layer.link, x, y);
 
         ctx.restore();
     }
