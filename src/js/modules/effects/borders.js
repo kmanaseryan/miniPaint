@@ -84,26 +84,29 @@ class Effects_borders_class {
 
         ctx.save();
 
-        var dArr = [-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, -1, 1, 0, 1, 1, 1]; // offset array
+        const offsets = [-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, -1, 1, 0, 1, 1, 1]; // offset array
 
         // Draw the same image, but scaled by the border size
-        for (let i = 0; i < dArr.length; i += 2)
+        for (let i = 0; i < offsets.length; i += 2) {
             ctx.drawImage(
                 layer.link,
-                x + dArr[i] * size,
-                y + dArr[i + 1] * size
+                x + offsets[i] * size,
+                y + offsets[i + 1] * size,
+                width,
+                height
             );
+        }
 
         // Set the color
         ctx.fillStyle = data.params.color;
         // Now we will intersect the above drawn image with the rectangle below
         // As a result we will have an object having the same shape of the original image, but scaled by the border size
         ctx.globalCompositeOperation = "source-in";
-        ctx.fillRect(0, 0, width + size, height + size);
+        ctx.fillRect(x - size, y - size, width + 2 * size, height + 2 * size);
 
         // Draw the original image in normal size on top of the newly created object
         ctx.globalCompositeOperation = "source-over";
-        ctx.drawImage(layer.link, x, y);
+        ctx.drawImage(layer.link, x, y, width, height);
 
         ctx.restore();
     }
