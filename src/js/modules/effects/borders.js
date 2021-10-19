@@ -71,10 +71,10 @@ class Effects_borders_class {
     render_post(ctx, data, layer) {
         const size = Math.max(0, data.params.size);
 
-        let x = layer.x;
-        let y = layer.y;
-        let width = parseInt(layer.width);
-        let height = parseInt(layer.height);
+        const x = layer.x;
+        const y = layer.y;
+        const width = parseInt(layer.width);
+        const height = parseInt(layer.height);
 
         //legacy check
         if (x == null) x = 0;
@@ -84,43 +84,24 @@ class Effects_borders_class {
 
         ctx.save();
 
-        const offsets = [-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, -1, 1, 0, 1, 1, 1]; // offset array
+        //set styles
+        ctx.strokeStyle = data.params.color;
+        ctx.lineWidth = size;
 
-        // Create an isolated canvas to draw our bordered image
-        const newCanvas = document.createElement("canvas");
-        newCanvas.height = 2 * Math.max(ctx.canvas.height, layer.height);
-        newCanvas.width = 2 * Math.max(ctx.canvas.width, layer.width);
+        //draw with rotation support
+        ctx.translate(layer.x + width / 2, layer.y + height / 2);
+        ctx.rotate((layer.rotate * Math.PI) / 180);
+        const x_new = -width / 2;
+        const y_new = -height / 2;
 
-        let newCtx = newCanvas.getContext("2d");
-        // Draw the same image, but scaled by the border size
-        for (let i = 0; i < offsets.length; i += 2) {
-            newCtx.drawImage(
-                layer.link,
-                x + offsets[i] * size,
-                y + offsets[i + 1] * size,
-                width,
-                height
-            );
-        }
-
-        // Set the color
-        newCtx.fillStyle = data.params.color;
-        // Now we will intersect the above drawn image with the rectangle below
-        // As a result we will have an object having the same shape of the original image, but scaled by the border size
-        newCtx.globalCompositeOperation = "source-in";
-        newCtx.fillRect(
-            x - size,
-            y - size,
-            width + 2 * size,
-            height + 2 * size
+        ctx.beginPath();
+        ctx.rect(
+            x_new - size * 0.5,
+            y_new - size * 0.5,
+            width + size,
+            height + size
         );
-
-        // Now draw our image from isolated canvas to the main one
-        ctx.drawImage(newCanvas, 0, 0);
-
-        // Draw the original image in normal size on top of the newly created object
-        ctx.globalCompositeOperation = "source-over";
-        ctx.drawImage(layer.link, x, y, width, height);
+        ctx.stroke();
 
         ctx.restore();
     }
