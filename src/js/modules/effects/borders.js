@@ -4,6 +4,7 @@ import Base_layers_class from "./../../core/base-layers.js";
 import Dialog_class from "./../../libs/popup.js";
 import alertify from "./../../../../node_modules/alertifyjs/build/alertify.min.js";
 import Effects_browser_class from "./browser";
+import drawBorder from "../../libs/image-border-effect.js";
 
 class Effects_borders_class {
     constructor() {
@@ -48,7 +49,6 @@ class Effects_borders_class {
     demo(canvas_id, canvas_thumb) {
         var canvas = document.getElementById(canvas_id);
         var ctx = canvas.getContext("2d");
-
         //draw
         ctx.drawImage(
             canvas_thumb,
@@ -70,7 +70,6 @@ class Effects_borders_class {
 
     render_post(ctx, data, layer) {
         const size = Math.max(0, data.params.size);
-
         const x = layer.x;
         const y = layer.y;
         const width = parseInt(layer.width);
@@ -84,24 +83,18 @@ class Effects_borders_class {
 
         ctx.save();
 
-        //set styles
-        ctx.strokeStyle = data.params.color;
-        ctx.lineWidth = size;
+        // We need to get aspect ratio for preview canvas and for the main canvas when it gets zoom < 1
+        const aspectRatio = ctx.canvas.height / config.HEIGHT;
 
-        //draw with rotation support
-        ctx.translate(layer.x + width / 2, layer.y + height / 2);
-        ctx.rotate((layer.rotate * Math.PI) / 180);
-        const x_new = -width / 2;
-        const y_new = -height / 2;
-
-        ctx.beginPath();
-        ctx.rect(
-            x_new - size * 0.5,
-            y_new - size * 0.5,
-            width + size,
-            height + size
-        );
-        ctx.stroke();
+        let borderWidth = size * aspectRatio;
+        // This is the case when it's zoomed more than the canvas size
+        if (aspectRatio >= 1 && aspectRatio <= config.ZOOM) {
+            borderWidth = size * config.ZOOM;
+        }
+        // Draw border multiple times to get the necessary with in pixels
+        for (let i = 0; i < borderWidth; i++) {
+            ctx.putImageData(drawBorder(ctx, data.params.color), 0, 0);
+        }
 
         ctx.restore();
     }
