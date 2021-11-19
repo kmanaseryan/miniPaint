@@ -49,7 +49,6 @@ class Base_layers_class {
             return instance;
         }
         instance = this;
-
         this.Base_gui = new Base_gui_class();
         this.Helper = new Helper_class();
         this.Image_trim = new Image_trim_class();
@@ -93,6 +92,10 @@ class Base_layers_class {
         );
 
         this.render(true);
+    }
+
+    getZoomView() {
+        return zoomView;
     }
 
     init_zoom_lib() {
