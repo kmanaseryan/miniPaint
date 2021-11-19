@@ -1,6 +1,7 @@
 import app from "./../../app.js";
 import config from "./../../config.js";
 import Base_layers_class from "./../../core/base-layers.js";
+import Base_gui_class from "./../../core/base-gui.js";
 import Dialog_class from "./../../libs/popup.js";
 import alertify from "./../../../../node_modules/alertifyjs/build/alertify.min.js";
 import Effects_browser_class from "./browser";
@@ -9,6 +10,7 @@ import drawBorder from "../../libs/image-border-effect.js";
 class Effects_borders_class {
     constructor() {
         this.POP = new Dialog_class();
+        this.Base_gui = new Base_gui_class();
         this.Base_layers = new Base_layers_class();
         this.Effects_browser = new Effects_browser_class();
     }
@@ -69,32 +71,25 @@ class Effects_borders_class {
     render_pre(ctx, data) {}
 
     render_post(ctx, data, layer) {
+        const zoomPos = this.Base_layers.getZoomView().getPosition();
+        const { w, h } = this.Base_gui.GUI_preview.PREVIEW_SIZE;
         const size = Math.max(0, data.params.size);
-        const x = layer.x;
-        const y = layer.y;
-        const width = parseInt(layer.width);
-        const height = parseInt(layer.height);
-
-        //legacy check
-        if (x == null) x = 0;
-        if (y == null) y = 0;
-        if (!width) width = config.WIDTH;
-        if (!height) height = config.HEIGHT;
 
         ctx.save();
+        let borderWidth = size * config.ZOOM;
 
-        // We need to get aspect ratio for preview canvas and for the main canvas when it gets zoom < 1
-        const aspectRatio = ctx.canvas.height / config.HEIGHT;
+        // If this is the preview canvas
+        if (
+            ctx.canvas.id === this.Base_gui.GUI_preview.canvas_preview.canvas.id
+        ) {
+            ctx.scale(config.WIDTH / w, config.HEIGHT / h);
+            borderWidth = (size * w) / config.WIDTH;
+        } else {
+            ctx.scale(1 / config.ZOOM, 1 / config.ZOOM);
+            ctx.translate(-zoomPos.x, -zoomPos.y);
+        }
 
-        let borderWidth = size * aspectRatio;
-        // This is the case when it's zoomed more than the canvas size
-        if (aspectRatio >= 1 && aspectRatio <= config.ZOOM) {
-            borderWidth = size * config.ZOOM;
-        }
-        // Draw border multiple times to get the necessary with in pixels
-        for (let i = 0; i < borderWidth; i++) {
-            ctx.putImageData(drawBorder(ctx, data.params.color), 0, 0);
-        }
+        drawBorder(ctx, data.params.color, borderWidth);
 
         ctx.restore();
     }
